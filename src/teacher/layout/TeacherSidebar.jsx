@@ -14,7 +14,7 @@ export default function TeacherSidebar({ open, onClose }) {
   const menu = [
     { name: "Dashboard", path: "/teacher", icon: <MdDashboard size={20} /> },
     { name: "Courses", path: "/teacher/courses", icon: <MdMenuBook size={20} /> },
-    { name: "Certifications", path: "/teacher/tests", icon: <ClipboardCheck size={18} /> },
+    // { name: "Certifications", path: "/teacher/tests", icon: <ClipboardCheck size={18} /> },
     { name: "Students", path: "/teacher/students", icon: <MdPeople size={20} /> },
   ];
 

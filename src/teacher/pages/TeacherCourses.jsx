@@ -205,12 +205,12 @@ export default function TeacherCourses() {
                 <Calendar size={14} /> Live Class
               </button>
 
-              <button
+              {/* <button
                 onClick={() => navigate(`/teacher/tests`)}
                 className="bg-slate-800 text-white py-2 rounded"
               >
                 <ClipboardCheck size={14} /> Tests
-              </button>
+              </button> */}
             </div>
           </div>
         </div>
