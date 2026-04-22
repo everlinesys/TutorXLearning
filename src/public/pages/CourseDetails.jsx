@@ -89,7 +89,7 @@ export default function CourseDetails() {
   if (!course) return <div className="py-20 text-center">Course not found!!!.</div>;
 
   return (
-    <div className="min-h-screen bg-gray-50 w-[100vw]">
+    <div className="min-h-screen bg-gray-50 min-w-[100vw]">
 
       {/* ===== HERO ===== */}
       <div
