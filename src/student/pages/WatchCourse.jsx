@@ -227,7 +227,7 @@ export default function WatchCourse() {
                   <div
                     key={i}
                     className="rounded-xl overflow-hidden border border-slate-200"
-                  > {url}
+                  >
                     <iframe
                       src={`https://${url}#toolbar=0&navpanes=0&scrollbar=1`}
                       className="w-full h-[600px]"
