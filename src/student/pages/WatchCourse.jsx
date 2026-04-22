@@ -224,7 +224,7 @@ export default function WatchCourse() {
                 </h3>
 
                 {currentChapter.pdfUrls.map((url, i) => (
-                  <div
+                  <div 
                     key={i}
                     className="rounded-xl overflow-hidden border border-slate-200"
                   >
