@@ -6,20 +6,28 @@ import { BookOpen, ChevronRight, Star } from "lucide-react";
 
 export default function FeaturedCoursesStrip() {
     const [courses, setCourses] = useState([]);
+    const [groups, setGroups] = useState([]); // ✅ NEW
     const brand = useBranding();
     const [scrollProgress, setScrollProgress] = useState(0);
     const scrollRef = useRef(null);
+
     useEffect(() => {
         async function load() {
             try {
-                const { data } = await api.get("/courses");
-                setCourses(data);
+                const [courseRes, groupRes] = await Promise.all([
+                    api.get("/courses"),
+                    api.get("/course-groups"), // public groups
+                ]);
+
+                setCourses(courseRes.data || []);
+                setGroups(groupRes.data || []);
             } catch (err) {
                 console.error(err);
             }
         }
         load();
     }, []);
+
     const handleScroll = () => {
         if (scrollRef.current) {
             const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
@@ -28,11 +36,41 @@ export default function FeaturedCoursesStrip() {
         }
     };
 
-    return (
-        <section className="bg-white py-0 overflow-hidden" id="courses"
-        >
+    /* ================= GROUP LOGIC ================= */
 
-            <div className="max-w-screen mx-auto px-6 py-6 md:px-16 " style={{ backgroundColor: brand.colors.primary }}>
+    // pick ONE course per group
+    const groupPreviewCourses = groups
+        .map((g) => {
+            const first = g.courses?.[0]?.course;
+            if (!first) return null;
+
+            return {
+                ...first,
+                groupName: g.name, // attach group label
+            };
+        })
+        .filter(Boolean);
+
+    // collect grouped ids
+    const groupedIds = new Set();
+    groups.forEach((g) =>
+        g.courses?.forEach((c) => groupedIds.add(c.course.id))
+    );
+
+    // remove grouped courses from normal list
+    const standaloneCourses = courses.filter(
+        (c) => !groupedIds.has(c.id)
+    );
+
+    // final merged list
+    const finalCourses = [...groupPreviewCourses, ...standaloneCourses];
+
+    return (
+        <section className="bg-white py-0 overflow-hidden" id="courses">
+            <div
+                className="max-w-screen mx-auto px-6 py-6 md:px-16"
+                style={{ backgroundColor: brand.colors.primary }}
+            >
 
                 {/* Header */}
                 <div className="flex items-center justify-between mb-6 text-white">
@@ -49,17 +87,17 @@ export default function FeaturedCoursesStrip() {
                     </Link>
                 </div>
 
-
+                {/* SCROLL AREA */}
                 <div
                     ref={scrollRef}
                     onScroll={handleScroll}
                     className="relative z-10 flex gap-6 overflow-x-auto pb-8 no-scrollbar snap-x snap-mandatory"
                     style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                 >
-                    {courses.slice(0, 10).map((course) => (
+                    {finalCourses.slice(0, 10).map((course) => (
                         <Link
                             to={`/courses/${course.id}`}
-                            key={course.id}
+                            key={`${course.id}-${course.groupName || "single"}`}
                             className="min-w-[280px] md:min-w-[320px] bg-white rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-500 group snap-start"
                         >
                             {/* Thumbnail */}
@@ -71,19 +109,32 @@ export default function FeaturedCoursesStrip() {
                                         className="w-full h-full object-cover group-hover:scale-110 transition duration-700"
                                     />
                                 ) : (
-                                    <div className="h-full flex items-center justify-center text-xs text-slate-400">No Preview</div>
+                                    <div className="h-full flex items-center justify-center text-xs text-slate-400">
+                                        No Preview
+                                    </div>
                                 )}
+
+                                {/* TYPE BADGE */}
                                 <div className="absolute top-4 left-4 px-3 py-1 bg-white/90 backdrop-blur text-[10px] font-bold uppercase tracking-wider rounded-lg text-slate-800 shadow-sm">
                                     {course.type || "Course"}
                                 </div>
+
+                                {/* ✅ GROUP BADGE */}
+                                {course.groupName && (
+                                    <div className="absolute top-4 right-4 px-3 py-1 bg-indigo-600 text-white text-[10px] font-bold rounded-lg shadow">
+                                        {course.groupName}
+                                    </div>
+                                )}
                             </div>
 
                             {/* Content */}
                             <div className="p-6 space-y-3">
                                 <div className="flex items-center gap-2">
-                                    <div className="w-5 h-5 rounded-md bg-slate-100 flex items-center justify-center text-[10px] font-bold">E</div>
+                                    <div className="w-5 h-5 rounded-md bg-slate-100 flex items-center justify-center text-[10px] font-bold">
+                                        E
+                                    </div>
                                     <span className="text-[11px] text-slate-400 font-bold uppercase tracking-tighter">
-                                       {brand.siteName || "LMS Platform"}
+                                        {brand.siteName || "LMS Platform"}
                                     </span>
                                 </div>
 
@@ -97,7 +148,7 @@ export default function FeaturedCoursesStrip() {
                                             <Star size={14} fill="currentColor" /> {course.rating || 4.8}
                                         </div>
                                         <div className="flex items-center gap-1 text-slate-400 font-bold text-xs">
-                                            <BookOpen size={14} /> {course.lessonsCount.toString() || 12}
+                                            <BookOpen size={14} /> {course.lessonsCount || 12}
                                         </div>
                                     </div>
                                     <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-300 group-hover:bg-emerald-500 group-hover:text-white transition-colors">
@@ -109,26 +160,13 @@ export default function FeaturedCoursesStrip() {
                     ))}
                 </div>
 
-                {/* STYLIZED DOT SCROLLBAR */}
+                {/* SCROLL INDICATOR */}
                 <div className="relative z-10 mt-4 flex justify-center items-center gap-2">
-                    {/* Background Track */}
                     <div className="relative w-48 h-1.5 bg-white/20 rounded-full overflow-hidden">
-                        {/* The "Liquid" Progress Filler */}
                         <div
                             className="absolute top-0 left-0 h-full bg-white transition-all duration-200 ease-out rounded-full"
                             style={{ width: `${scrollProgress}%` }}
                         />
-                    </div>
-
-                    {/* Dot Indicators */}
-                    <div className="flex gap-1.5">
-                        {[...Array(5)].map((_, i) => (
-                            <div
-                                key={i}
-                                className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${(scrollProgress / 20) >= i ? 'bg-white scale-125' : 'bg-white/30'
-                                    }`}
-                            />
-                        ))}
                     </div>
                 </div>
 
