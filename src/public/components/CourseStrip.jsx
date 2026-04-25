@@ -8,6 +8,7 @@ export default function FeaturedCoursesStrip() {
     const [courses, setCourses] = useState([]);
     const [groups, setGroups] = useState([]); // ✅ NEW
     const brand = useBranding();
+
     const [scrollProgress, setScrollProgress] = useState(0);
     const scrollRef = useRef(null);
 
@@ -16,7 +17,7 @@ export default function FeaturedCoursesStrip() {
             try {
                 const [courseRes, groupRes] = await Promise.all([
                     api.get("/courses"),
-                    api.get("/course-groups"), // public groups
+                    api.get("/course-groups"),
                 ]);
 
                 setCourses(courseRes.data || []);
@@ -36,46 +37,83 @@ export default function FeaturedCoursesStrip() {
         }
     };
 
-    /* ================= GROUP LOGIC ================= */
-
-    // pick ONE course per group
-    const groupPreviewCourses = groups
-        .map((g) => {
-            const first = g.courses?.[0]?.course;
-            if (!first) return null;
-
-            return {
-                ...first,
-                groupName: g.name, // attach group label
-            };
-        })
-        .filter(Boolean);
-
-    // collect grouped ids
-    const groupedIds = new Set();
-    groups.forEach((g) =>
-        g.courses?.forEach((c) => groupedIds.add(c.course.id))
-    );
-
-    // remove grouped courses from normal list
-    const standaloneCourses = courses.filter(
-        (c) => !groupedIds.has(c.id)
-    );
-
-    // final merged list
-    const finalCourses = [...groupPreviewCourses, ...standaloneCourses];
-
     return (
         <section className="bg-white py-0 overflow-hidden" id="courses">
+
             <div
                 className="max-w-screen mx-auto px-6 py-6 md:px-16"
                 style={{ backgroundColor: brand.colors.primary }}
             >
 
-                {/* Header */}
+                {/* ================= GROUP STRIPS ================= */}
+                {groups.map((group) => (
+                    <div key={group.id} className="mb-10">
+
+                        {/* Group Title */}
+                        <div className="flex items-center justify-between mb-4 text-white">
+                            <h2 className="text-lg font-bold">
+                                {group.name} →
+                            </h2>
+                        </div>
+
+                        {/* Horizontal Scroll */}
+                        <div className="flex gap-6 overflow-x-auto pb-4 no-scrollbar snap-x snap-mandatory">
+
+                            {group.courses?.map((item) => {
+                                const course = item.course;
+
+                                return (
+                                    <Link
+                                        to={`/courses/${course.id}`}
+                                        key={course.id}
+                                        className="min-w-[280px] md:min-w-[320px] bg-white rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-500 group snap-start"
+                                    >
+                                        {/* Thumbnail */}
+                                        <div className="h-44 bg-slate-100 overflow-hidden relative">
+                                            {course.thumbnail ? (
+                                                <img
+                                                    src={`${api.defaults.baseURL.replace("/api", "")}${course.thumbnail}`}
+                                                    alt={course.title}
+                                                    className="w-full h-full object-cover group-hover:scale-110 transition duration-700"
+                                                />
+                                            ) : (
+                                                <div className="h-full flex items-center justify-center text-xs text-slate-400">
+                                                    No Preview
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Content */}
+                                        <div className="p-6 space-y-3">
+                                            <h3 className="font-bold text-slate-900 line-clamp-2">
+                                                {course.title}
+                                            </h3>
+
+                                            <div className="flex items-center justify-between pt-2 border-t border-slate-50">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="flex items-center gap-1 text-amber-500 text-xs">
+                                                        <Star size={14} fill="currentColor" /> {course.rating || 4.8}
+                                                    </div>
+                                                    <div className="flex items-center gap-1 text-slate-400 text-xs">
+                                                        <BookOpen size={14} /> {course.lessonsCount || 12}
+                                                    </div>
+                                                </div>
+
+                                                <ChevronRight size={16} />
+                                            </div>
+                                        </div>
+                                    </Link>
+                                );
+                            })}
+
+                        </div>
+                    </div>
+                ))}
+
+                {/* ================= ORIGINAL STRIP ================= */}
                 <div className="flex items-center justify-between mb-6 text-white">
                     <h2 className="text-xl font-bold">
-                        Our Courses →
+                        All Courses →
                     </h2>
 
                     <Link
@@ -87,87 +125,38 @@ export default function FeaturedCoursesStrip() {
                     </Link>
                 </div>
 
-                {/* SCROLL AREA */}
                 <div
                     ref={scrollRef}
                     onScroll={handleScroll}
                     className="relative z-10 flex gap-6 overflow-x-auto pb-8 no-scrollbar snap-x snap-mandatory"
-                    style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                 >
-                    {finalCourses.slice(0, 10).map((course) => (
+                    {courses.slice(0, 10).map((course) => (
                         <Link
                             to={`/courses/${course.id}`}
-                            key={`${course.id}-${course.groupName || "single"}`}
+                            key={course.id}
                             className="min-w-[280px] md:min-w-[320px] bg-white rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-500 group snap-start"
                         >
-                            {/* Thumbnail */}
-                            <div className="h-44 bg-slate-100 overflow-hidden relative">
+                            <div className="h-44 bg-slate-100 overflow-hidden">
                                 {course.thumbnail ? (
                                     <img
                                         src={`${api.defaults.baseURL.replace("/api", "")}${course.thumbnail}`}
                                         alt={course.title}
-                                        className="w-full h-full object-cover group-hover:scale-110 transition duration-700"
+                                        className="w-full h-full object-cover"
                                     />
                                 ) : (
                                     <div className="h-full flex items-center justify-center text-xs text-slate-400">
                                         No Preview
                                     </div>
                                 )}
-
-                                {/* TYPE BADGE */}
-                                <div className="absolute top-4 left-4 px-3 py-1 bg-white/90 backdrop-blur text-[10px] font-bold uppercase tracking-wider rounded-lg text-slate-800 shadow-sm">
-                                    {course.type || "Course"}
-                                </div>
-
-                                {/* ✅ GROUP BADGE */}
-                                {course.groupName && (
-                                    <div className="absolute top-4 right-4 px-3 py-1 bg-indigo-600 text-white text-[10px] font-bold rounded-lg shadow">
-                                        {course.groupName}
-                                    </div>
-                                )}
                             </div>
 
-                            {/* Content */}
-                            <div className="p-6 space-y-3">
-                                <div className="flex items-center gap-2">
-                                    <div className="w-5 h-5 rounded-md bg-slate-100 flex items-center justify-center text-[10px] font-bold">
-                                        E
-                                    </div>
-                                    <span className="text-[11px] text-slate-400 font-bold uppercase tracking-tighter">
-                                        {brand.siteName || "LMS Platform"}
-                                    </span>
-                                </div>
-
-                                <h3 className="font-bold text-slate-900 leading-snug line-clamp-2 h-10">
+                            <div className="p-6">
+                                <h3 className="font-bold text-slate-900">
                                     {course.title}
                                 </h3>
-
-                                <div className="flex items-center justify-between pt-2 border-t border-slate-50">
-                                    <div className="flex items-center gap-3">
-                                        <div className="flex items-center gap-1 text-amber-500 font-bold text-xs">
-                                            <Star size={14} fill="currentColor" /> {course.rating || 4.8}
-                                        </div>
-                                        <div className="flex items-center gap-1 text-slate-400 font-bold text-xs">
-                                            <BookOpen size={14} /> {course.lessonsCount || 12}
-                                        </div>
-                                    </div>
-                                    <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-300 group-hover:bg-emerald-500 group-hover:text-white transition-colors">
-                                        <ChevronRight size={16} />
-                                    </div>
-                                </div>
                             </div>
                         </Link>
                     ))}
-                </div>
-
-                {/* SCROLL INDICATOR */}
-                <div className="relative z-10 mt-4 flex justify-center items-center gap-2">
-                    <div className="relative w-48 h-1.5 bg-white/20 rounded-full overflow-hidden">
-                        <div
-                            className="absolute top-0 left-0 h-full bg-white transition-all duration-200 ease-out rounded-full"
-                            style={{ width: `${scrollProgress}%` }}
-                        />
-                    </div>
                 </div>
 
             </div>
