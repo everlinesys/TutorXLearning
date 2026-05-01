@@ -144,12 +144,25 @@ export default function AdminDashboard() {
                       <h4 className="font-semibold">{lc.title}</h4>
                       <p className="text-sm">{new Date(lc.startTime).toLocaleString()}</p>
 
-                      <button
-                        onClick={() => window.open(lc.meetLink, "_blank")}
-                        className="w-full bg-red-600 text-white py-2 rounded-lg text-sm font-semibold"
-                      >
-                        🔴 Join Class
-                      </button>
+                      {type === "live" && (
+                        <button
+                          onClick={() => {
+                            let url = lc.meetLink?.trim();
+
+                            if (!url) return;
+
+                            // ✅ add https if missing
+                            if (!/^https?:\/\//i.test(url)) {
+                              url = "https://" + url;
+                            }
+
+                            window.open(url, "_blank");
+                          }}
+                          className="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg"
+                        >
+                          Join Class
+                        </button>
+                      )}
                     </div>
                   ))}
                 </div>

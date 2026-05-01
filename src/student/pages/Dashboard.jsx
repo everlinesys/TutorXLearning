@@ -213,8 +213,8 @@ export default function Dashboard() {
                 <div
                   key={lc.id}
                   className={`relative overflow-hidden bg-white border rounded-2xl p-6 transition-all hover:shadow-md ${live
-                      ? "border-red-200 ring-1 ring-red-50"
-                      : "border-slate-200"
+                    ? "border-red-200 ring-1 ring-red-50"
+                    : "border-slate-200"
                     }`}
                 >
                   {/* LIVE DOT */}
@@ -261,10 +261,10 @@ export default function Dashboard() {
                     {/* STATUS */}
                     <div
                       className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium ${live
-                          ? "bg-red-50 text-red-700"
-                          : ended
-                            ? "bg-slate-100 text-slate-500"
-                            : "bg-indigo-50 text-indigo-700"
+                        ? "bg-red-50 text-red-700"
+                        : ended
+                          ? "bg-slate-100 text-slate-500"
+                          : "bg-indigo-50 text-indigo-700"
                         }`}
                     >
                       {live && <Radio size={16} className="animate-pulse" />}
@@ -282,10 +282,21 @@ export default function Dashboard() {
                     {/* BUTTON */}
                     <button
                       disabled={!live}
-                      onClick={() => window.open(lc.meetLink, "_blank")}
+                      onClick={() => {
+                        let url = lc.meetLink?.trim();
+
+                        if (!url) return;
+
+                        // ✅ add https if missing
+                        if (!/^https?:\/\//i.test(url)) {
+                          url = "https://" + url;
+                        }
+
+                        window.open(url, "_blank");
+                      }}
                       className={`w-full py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all active:scale-95 ${live
-                          ? "bg-slate-900 hover:bg-black text-white shadow-lg shadow-slate-200"
-                          : "bg-slate-100 text-slate-400 cursor-not-allowed"
+                        ? "bg-slate-900 hover:bg-black text-white shadow-lg shadow-slate-200"
+                        : "bg-slate-100 text-slate-400 cursor-not-allowed"
                         }`}
                     >
                       {live && <Radio size={16} />}

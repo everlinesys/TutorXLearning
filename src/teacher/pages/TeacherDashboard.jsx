@@ -174,13 +174,12 @@ function LiveCard({ lc, type, now }) {
 
   return (
     <div
-      className={`bg-white border rounded-2xl p-5 shadow-sm space-y-3 ${
-        type === "live"
+      className={`bg-white border rounded-2xl p-5 shadow-sm space-y-3 ${type === "live"
           ? "border-red-300"
           : type === "upcoming"
-          ? "border-indigo-300"
-          : "opacity-60"
-      }`}
+            ? "border-indigo-300"
+            : "opacity-60"
+        }`}
     >
       <p className="text-xs text-slate-400">
         {lc.group?.name || lc.course?.title || "General"}
@@ -210,7 +209,18 @@ function LiveCard({ lc, type, now }) {
 
       {type === "live" && (
         <button
-          onClick={() => window.open(lc.meetLink, "_blank")}
+          onClick={() => {
+            let url = lc.meetLink?.trim();
+
+            if (!url) return;
+
+            // ✅ add https if missing
+            if (!/^https?:\/\//i.test(url)) {
+              url = "https://" + url;
+            }
+
+            window.open(url, "_blank");
+          }}
           className="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg"
         >
           Join Class
