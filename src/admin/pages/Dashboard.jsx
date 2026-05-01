@@ -142,7 +142,7 @@ export default function AdminDashboard() {
                   {liveNow.map((lc) => (
                     <div key={lc.id} className="p-5 rounded-2xl bg-red-50 border border-red-200 space-y-3">
                       <h4 className="font-semibold">{lc.title}</h4>
-                      <p className="text-sm">{new Date(lc.startTime)}</p>
+                      <p className="text-sm">{new Date(lc.startTime).toLocaleString()}</p>
 
                       <button
                         onClick={() => window.open(lc.meetLink, "_blank")}

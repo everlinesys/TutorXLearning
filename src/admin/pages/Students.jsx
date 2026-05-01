@@ -118,12 +118,13 @@ export default function Students() {
 
   /* ================= FILTERING ================= */
 
-  const filtered = users.filter(
+const filtered = users
+  .filter((u) => !u.blocked) // ✅ hide blocked users
+  .filter(
     (u) =>
       u.email?.toLowerCase().includes(query.toLowerCase()) ||
       u.name?.toLowerCase().includes(query.toLowerCase())
   );
-
   const students = filtered.filter((u) => u.purchases?.length > 0);
   const visitors = filtered.filter((u) => !u.purchases || u.purchases.length === 0);
   const list = activeTab === "students" ? students : visitors;
