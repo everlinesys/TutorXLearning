@@ -7,7 +7,7 @@ export default function EditCourse() {
   const navigate = useNavigate();
   const [error, setError] = useState("");
   const isNew = id === "new";
-  const PLAN_OPTIONS = [2, 3, 6, 12];
+  const PLAN_OPTIONS = [2, 3, 5, 6, 10, 12];
   const [form, setForm] = useState({
     title: "",
     description: "",

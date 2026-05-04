@@ -32,7 +32,7 @@ export default function Students() {
     setLoading(true);
     try {
       // Note: adjust paths if your base API url includes /api
-      const u = await api.get("/students"); 
+      const u = await api.get("/students");
       const c = await api.get("/courses");
       setUsers(u.data || []);
       setCourses(c.data || []);
@@ -115,24 +115,45 @@ export default function Students() {
       showAlert("Error", err.response?.data?.message || "Assignment failed");
     }
   }
-
+  async function unassignCourse(userId, courseId) {
+    await api.delete(`/admin/students/${userId}/course/${courseId}`);
+    load();
+  }
   /* ================= FILTERING ================= */
 
-const filtered = users
-  .filter((u) => !u.blocked) // ✅ hide blocked users
-  .filter(
+  // const filtered = users
+  //   .filter((u) => !u.blocked) // ✅ hide blocked users
+  //   .filter(
+  //     (u) =>
+  //       u.email?.toLowerCase().includes(query.toLowerCase()) ||
+  //       u.name?.toLowerCase().includes(query.toLowerCase())
+  //   );
+  const filtered = users.filter(
     (u) =>
       u.email?.toLowerCase().includes(query.toLowerCase()) ||
       u.name?.toLowerCase().includes(query.toLowerCase())
   );
-  const students = filtered.filter((u) => u.purchases?.length > 0);
-  const visitors = filtered.filter((u) => !u.purchases || u.purchases.length === 0);
-  const list = activeTab === "students" ? students : visitors;
+  // const students = filtered.filter((u) => u.purchases?.length > 0);
+  // const visitors = filtered.filter((u) => !u.purchases || u.purchases.length === 0);
+  // const list = activeTab === "students" ? students : visitors;
+
+  const activeUsers = filtered.filter((u) => !u.blocked);
+  const blockedUsers = filtered.filter((u) => u.blocked);
+
+  const students = activeUsers.filter((u) => u.purchases?.length > 0);
+  const visitors = activeUsers.filter((u) => !u.purchases || u.purchases.length === 0);
+
+  const list =
+    activeTab === "students"
+      ? students
+      : activeTab === "visitors"
+        ? visitors
+        : blockedUsers;
 
   return (
     <div className="min-h-screen bg-[#0f172a] text-slate-200 p-6 md:p-10 font-sans">
       <div className="max-w-6xl mx-auto space-y-8">
-        
+
         {/* HEADER */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-800 pb-8">
           <div>
@@ -152,19 +173,27 @@ const filtered = users
           <div className="flex bg-slate-900/50 p-1 border border-slate-800 rounded-xl w-full md:w-auto">
             <button
               onClick={() => setActiveTab("students")}
-              className={`flex-1 md:flex-none px-6 py-2 rounded-lg text-sm font-medium transition-all ${
-                activeTab === "students" ? "bg-slate-800 text-white shadow-sm" : "text-slate-400 hover:text-slate-200"
-              }`}
+              className={`flex-1 md:flex-none px-6 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === "students" ? "bg-slate-800 text-white shadow-sm" : "text-slate-400 hover:text-slate-200"
+                }`}
             >
               Students <span className="ml-2 text-xs opacity-60">{students.length}</span>
             </button>
             <button
               onClick={() => setActiveTab("visitors")}
-              className={`flex-1 md:flex-none px-6 py-2 rounded-lg text-sm font-medium transition-all ${
-                activeTab === "visitors" ? "bg-slate-800 text-white shadow-sm" : "text-slate-400 hover:text-slate-200"
-              }`}
+              className={`flex-1 md:flex-none px-6 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === "visitors" ? "bg-slate-800 text-white shadow-sm" : "text-slate-400 hover:text-slate-200"
+                }`}
             >
               Visitors <span className="ml-2 text-xs opacity-60">{visitors.length}</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab("blocked")}
+              className={`flex-1 md:flex-none px-6 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === "blocked"
+                ? "bg-slate-800 text-white shadow-sm"
+                : "text-slate-400 hover:text-slate-200"
+                }`}
+            >
+              Blocked <span className="ml-2 text-xs opacity-60">{blockedUsers.length}</span>
             </button>
           </div>
 
@@ -188,12 +217,11 @@ const filtered = users
           )}
 
           {list.map((u) => (
-            <div key={u.id} className={`group border transition-all rounded-2xl overflow-hidden ${
-              expanded[u.id] ? "bg-slate-900/80 border-slate-700 shadow-xl" : "bg-slate-900/40 border-slate-800 hover:border-slate-700"
-            }`}>
+            <div key={u.id} className={`group border transition-all rounded-2xl overflow-hidden ${expanded[u.id] ? "bg-slate-900/80 border-slate-700 shadow-xl" : "bg-slate-900/40 border-slate-800 hover:border-slate-700"
+              }`}>
               <button
                 onClick={() => toggle(u.id)}
-                className="w-full flex justify-between items-center p-5 text-left"
+                className="w-full flex justify-between items-center p-5 text-left rounded-2xl"
               >
                 <div className="flex items-center gap-4">
                   <div className="h-10 w-10 rounded-full bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center font-bold text-slate-300">
@@ -208,20 +236,20 @@ const filtered = users
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
-                   <div className="hidden md:block text-right">
-                      <div className="text-xs text-slate-500 uppercase font-bold tracking-wider">Enrollments</div>
-                      <div className="text-sm font-medium">{u.purchases?.length || 0} Courses</div>
-                   </div>
-                   <span className={`text-slate-500 transition-transform duration-300 ${expanded[u.id] ? "rotate-180" : ""}`}>
+                  <div className="hidden md:block text-right">
+                    <div className="text-xs text-slate-500 uppercase font-bold tracking-wider">Enrollments</div>
+                    <div className="text-sm font-medium">{u.purchases?.length || 0} Courses</div>
+                  </div>
+                  <span className={`text-slate-500 transition-transform duration-300 ${expanded[u.id] ? "rotate-180" : ""}`}>
                     ▼
-                   </span>
+                  </span>
                 </div>
               </button>
 
               {expanded[u.id] && (
                 <div className="px-5 pb-6 space-y-6 animate-in fade-in slide-in-from-top-2">
                   <div className="h-px bg-slate-800" />
-                  
+
                   {/* QUICK ACTIONS */}
                   <div className="flex flex-wrap gap-3">
                     <button onClick={() => setAssigningUser(u)} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition-colors">
@@ -230,11 +258,10 @@ const filtered = users
                     <button onClick={() => resetPassword(u.id)} className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-bold transition-colors">
                       Reset Password
                     </button>
-                    <button 
-                      onClick={() => toggleBlock(u)} 
-                      className={`px-4 py-2 rounded-lg text-xs font-bold transition-colors ${
-                        u.blocked ? "bg-emerald-600/10 text-emerald-500 hover:bg-emerald-600/20" : "bg-rose-600/10 text-rose-500 hover:bg-rose-600/20"
-                      }`}
+                    <button
+                      onClick={() => toggleBlock(u)}
+                      className={`px-4 py-2 rounded-lg text-xs font-bold transition-colors ${u.blocked ? "bg-emerald-600/10 text-emerald-500 hover:bg-emerald-600/20" : "bg-rose-600/10 text-rose-500 hover:bg-rose-600/20"
+                        }`}
                     >
                       {u.blocked ? "Unblock User" : "Block User"}
                     </button>
@@ -250,16 +277,40 @@ const filtered = users
                         {u.purchases.map((p) => (
                           <div key={p.id} className="bg-slate-950/50 border border-slate-800 p-4 rounded-xl">
                             <div className="flex justify-between items-start mb-3">
-                              <span className="text-sm font-bold text-slate-200">{p.course?.title}</span>
-                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${p.finalTestPassed ? "bg-emerald-500/20 text-emerald-400" : "bg-amber-500/20 text-amber-400"}`}>
-                                {p.finalTestPassed ? "PASSED" : "IN PROGRESS"}
+                              <span className="text-sm font-bold text-slate-200">
+                                {p.course?.title}
                               </span>
+
+                              <div className="flex items-center gap-2">
+                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${p.finalTestPassed
+                                  ? "bg-emerald-500/20 text-emerald-400"
+                                  : "bg-amber-500/20 text-amber-400"
+                                  }`}>
+                                  {p.finalTestPassed ? "PASSED" : "IN PROGRESS"}
+                                </span>
+
+                                <button
+                                  onClick={() =>
+                                    showConfirm(
+                                      "Unassign Course",
+                                      "This action will remove the student's enrollment and all related data (progress, payments). This cannot be undone.",
+                                      async () => {
+                                        await unassignCourse(u.id, p.course.id);
+                                        setUiModal({ show: false });
+                                      }
+                                    )
+                                  }
+                                  className="text-[10px] text-rose-400 hover:text-rose-300"
+                                >
+                                  ✕
+                                </button>
+                              </div>
                             </div>
                             <div className="flex items-center gap-3">
-                                <div className="flex-1 bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                                  <div className="bg-indigo-500 h-full rounded-full transition-all duration-1000" style={{ width: `${p.progressPercent}%` }} />
-                                </div>
-                                <span className="text-xs font-mono text-slate-500">{p.progressPercent}%</span>
+                              <div className="flex-1 bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                                <div className="bg-indigo-500 h-full rounded-full transition-all duration-1000" style={{ width: `${p.progressPercent}%` }} />
+                              </div>
+                              <span className="text-xs font-mono text-slate-500">{p.progressPercent}%</span>
                             </div>
                           </div>
                         ))}
@@ -278,8 +329,8 @@ const filtered = users
             <div className="bg-slate-900 border border-slate-800 p-8 rounded-2xl w-full max-w-md shadow-2xl">
               <h3 className="text-xl font-bold text-white mb-2">Assign Course</h3>
               <p className="text-slate-400 text-sm mb-6">Enrolling: <span className="text-indigo-400 font-medium">{assigningUser.email}</span></p>
-              
-              <select 
+
+              <select
                 className="w-full bg-slate-800 border border-slate-700 p-3 rounded-xl text-white mb-6 outline-none focus:ring-2 focus:ring-indigo-500"
                 value={selectedCourse}
                 onChange={(e) => setSelectedCourse(e.target.value)}
@@ -307,11 +358,11 @@ const filtered = users
               <div className="flex gap-3">
                 {uiModal.onConfirm ? (
                   <>
-                    <button onClick={() => setUiModal({show: false})} className="flex-1 px-4 py-2 bg-slate-800 rounded-lg font-bold">Cancel</button>
+                    <button onClick={() => setUiModal({ show: false })} className="flex-1 px-4 py-2 bg-slate-800 rounded-lg font-bold">Cancel</button>
                     <button onClick={uiModal.onConfirm} className="flex-1 px-4 py-2 bg-indigo-600 rounded-lg font-bold">Confirm</button>
                   </>
                 ) : (
-                  <button onClick={() => setUiModal({show: false})} className="w-full px-4 py-2 bg-indigo-600 rounded-lg font-bold">OK</button>
+                  <button onClick={() => setUiModal({ show: false })} className="w-full px-4 py-2 bg-indigo-600 rounded-lg font-bold">OK</button>
                 )}
               </div>
             </div>

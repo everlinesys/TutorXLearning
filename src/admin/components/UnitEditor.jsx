@@ -78,14 +78,20 @@ export default function UnitEditor({ unit }) {
   async function createChapter(e) {
     e.preventDefault();
 
-    if (!title || !file)
-      return alert("Title and file required");
+    // if (!title || !file)
+    //   return alert("Title and file required");
+    if (!title)
+      return alert("Title required");
 
     try {
       setUploading(true);
       setProgress(0);
 
-      const videoId = await uploadVideo(title);
+      let videoId = "";
+
+      if (file) {
+        videoId = await uploadVideo(title);
+      }
       const pdfUrls = await uploadPDFs();
 
       await api.post(
