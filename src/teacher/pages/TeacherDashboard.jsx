@@ -219,7 +219,7 @@ function LiveCard({ lc, type, now }) {
               url = "https://" + url;
             }
 
-            window.open(url, "_blank");
+           window.location.href = url;
           }}
           className="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg"
         >

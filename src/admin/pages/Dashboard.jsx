@@ -65,9 +65,9 @@ export default function AdminDashboard() {
     return () => clearInterval(interval);
   }, []);
 
-  const liveNow = liveClasses.filter(lc =>
-    isLive(lc.startTime, lc.endTime)
-  );
+  const liveNow = liveClasses.filter((lc) => {
+    return isLive(lc.startTime, lc.endTime);
+  });
 
   const upcomingLives = liveClasses.filter(lc =>
     new Date(lc.startTime) > now
@@ -140,30 +140,25 @@ export default function AdminDashboard() {
 
                 <div className="grid md:grid-cols-2 gap-4">
                   {liveNow.map((lc) => (
-                    <div
-                      key={lc.id}
-                      className="p-5 rounded-2xl bg-red-50 border border-red-200 space-y-3"
-                    >
+                    <div key={lc.id} className="p-5 rounded-2xl bg-red-50 border border-red-200 space-y-3">
                       <h4 className="font-semibold">{lc.title}</h4>
+                      <p className="text-sm">{new Date(lc.startTime).toLocaleString()}</p>
 
-                      <p className="text-sm">
-                        {new Date(lc.startTime).toLocaleString()}
-                      </p>
-
-                      {lc.type === "live" && (
+                      {/* FIXED: Removed the undefined 'type === "live"' check */}
+                      {lc.meetLink && (
                         <button
                           onClick={() => {
-                            let url = lc.meetLink?.trim();
-
+                            let url = lc.meetLink.trim();
                             if (!url) return;
 
+                            // ✅ Add https if missing
                             if (!/^https?:\/\//i.test(url)) {
                               url = "https://" + url;
                             }
 
-                            window.open(url, "_blank");
+                            window.open(url, "_blank", "noopener,noreferrer");
                           }}
-                          className="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg"
+                          className="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg font-medium transition-colors"
                         >
                           Join Class
                         </button>
