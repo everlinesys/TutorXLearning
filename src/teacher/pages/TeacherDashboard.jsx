@@ -75,7 +75,7 @@ export default function TeacherDashboard() {
       </div>
 
       {/* STATS */}
-      <div className="grid md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-3 gap-2 md:gap-6">
         <StatCard title="Courses" value={courses.length} icon={<BookOpen size={16} />} />
         <StatCard title="Live Classes" value={liveClasses.length} icon={<Video size={16} />} />
         <StatCard title="Students" value={students.length} icon={<Users size={16} />} />
@@ -250,7 +250,7 @@ function Section({ title, children, color }) {
 function StatCard({ title, value, icon }) {
   return (
     <div className="bg-white border rounded-2xl p-5 shadow-sm">
-      <div className="flex items-center gap-2 text-slate-400 text-xs uppercase">
+      <div className="md:flex items-center gap-2 text-slate-400 text-xs uppercase">
         {icon} {title}
       </div>
       <div className="text-2xl font-bold text-slate-900 mt-2">

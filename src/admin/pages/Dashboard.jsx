@@ -100,7 +100,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* ===== STATS ===== */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div className="grid grid-cols-3 md:grid-cols-3 gap-3">
         <StatCard
           title="Portfolio"
           value={stats.courses.total}

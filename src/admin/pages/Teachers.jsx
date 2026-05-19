@@ -42,6 +42,7 @@ export default function Teachers() {
       const res = await api.get(`/admin/teachers/${id}/wallet`);
       setWalletData(res.data);
       setWalletModal(id);
+      setAdjustment(res.data.adjustmentPay || 0);
     } catch {
       showAlert("Error", "Failed to load wallet");
     }
@@ -152,6 +153,21 @@ export default function Teachers() {
   async function removeCourse(teacherId, courseId) {
     await api.delete(`/admin/teachers/${teacherId}/course/${courseId}`);
     load();
+  }
+  async function updateAdjustment() {
+    if (!walletModal) return;
+    console.log("Updating adjustment:", adjustment, walletModal);
+    try {
+      await api.post(
+        `/admin/teachers/${walletModal}/adjustment`,
+        {
+          adjustment: Number(adjustment),
+          adjustmentNote,
+        }
+      );
+    } catch {
+      showAlert("Error", "Failed to update adjustment");
+    }
   }
 
   /* ================= FILTER ================= */
@@ -537,6 +553,7 @@ export default function Teachers() {
                       onChange={(e) => setAdjustment(e.target.value)}
                       placeholder="Bonus or deduction"
                       className="w-full bg-white/5 border border-white/10 px-4 py-3 rounded-xl outline-none"
+                      onBlur={() => updateAdjustment()}
                     />
                   </div>
 
@@ -585,7 +602,7 @@ export default function Teachers() {
                   className="py-3 bg-white/5 hover:bg-white/10 rounded-xl font-semibold transition-colors"
                   onClick={() => setWalletModal(null)}
                 >
-                  Dismiss
+                  Close
                 </button>
                 <button
                   onClick={() => markPaid(walletModal)}
